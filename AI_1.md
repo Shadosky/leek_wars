@@ -23,12 +23,12 @@ var range = getWeaponMaxRange(weapon);
 var spellRange = getChipMaxRange(CHIP_SPARK);
 var myCell = getCell();
 var hisCell = getCell(enemy);
+var dontTest = false;
 
 var dammageMultiplier = 1+(getStrength()/100);
 var effectWeapon = getWeaponEffects(weapon);
 var potentialOutput = getLethal(weapon, effectWeapon, dammageMultiplier);
 var enemyPotentialOutput = getLethal(enemyWeapon, enemyEffectWeapon, enemyDammageMultiplier);
-debug(potentialOutput);
 var canLethal = (enemyLife < potentialOutput);
 
 function getLethal(weapon, effectWeapon, dammageMultiplier) {
@@ -37,10 +37,8 @@ function getLethal(weapon, effectWeapon, dammageMultiplier) {
 	}
 	if (weapon == WEAPON_DOUBLE_GUN) {
 		var dmg1 = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*2;
-		debug(dmg1);
 		var dmg2 = (((effectWeapon[1][1]+effectWeapon[1][2])*dammageMultiplier)/2)*2;
-		debug(dmg2);
-		return dmg1 + dmg2;
+		return dmg1 + dmg2 + 10;
 	}
 }
 
@@ -84,22 +82,30 @@ function testSolution(movePoint, hisCell, myCell) {
 		return false;
 	}
 }
-function getSafeMove(myCell, hisCell, range, enemyRange, enemyHasSpark, canLethal) {
+function getSafeMove(myCell, hisCell, range, spellRange, enemyRange, enemyHasSpark, canLethal, @dontTest) {
 	var mp = getTotalMP();
 	var dist =  getCellDistance(myCell , hisCell);
-	var inRange = dist - range;
-	var enemyTrueRange = (enemyHasSpark)? 10 : enemyRange;
+	var mpToShoot = dist - range;
+	var mpToCast = dist - spellRange;
+	var enemyTrueRange = (enemyHasSpark && false)? 10 : enemyRange;
 	var safeRange = dist - enemyTrueRange;
 	
-	if (inRange <= 0) {
+	if (mpToShoot <= 0) {
 		return  0;
 	}
-	if (!canLethal && safeRange > mp) {
-		if (safeRange < mp*2+1){
-			return 9999;
+	if(mpToShoot <= 3) {
+		return mpToShoot;
+	} else {
+		if(mpToCast <= 3) {
+			dontTest = true;
+			return mpToCast;
 		}
 	}
-	return inRange;
+	if (safeRange > mp) {
+			dontTest = true;
+			return safeRange-(mp+1);
+		}
+	debugE("ERROR");
 }
 
 function shootAt(enemy,canLethal) {
@@ -132,37 +138,34 @@ function burnIt(enemy) {
   //------------------------//
  //---Routine start here---//
 //------------------------//
+debug(canLethal);
 if(!canLethal){
 	//don't miss a lethal because ur healing urself..
 	// have to learned it the hard way
 	// RIP MyAwesomePoiro 2016-2016
 	stayAlive(myCell, enemyPotentialOutput);
 }
-var usedRange = (enemyHasSpark || canLethal) ? range : spellRange;
-var movePoint = getSafeMove(myCell, hisCell, usedRange, enemyRange, enemyHasSpark, canLethal);
-if (movePoint == 9999) {
-	var thisCell = getCell();
-	// Todo find a spot to hide at this moment
-	healer(myCell);
-} else {
-	if (movePoint > 0) {
-		if (testSolution(movePoint, hisCell, myCell) || !enemyHasSpark){
-			moveToward(enemy, movePoint);
-			if (!shootAt(enemy, canLethal)) {
-				if(!burnIt(enemy)) {
-					healer(myCell);
-				}
-				moveAwayFrom(enemy);
-			}
-		}
-	} else {
-		if(!shootAt(enemy, canLethal)) {
+
+var movePoint = getSafeMove(myCell, hisCell, range, spellRange, enemyRange, enemyHasSpark, canLethal, dontTest);
+debug(movePoint);
+if (movePoint > 0) {
+	if (testSolution(movePoint, hisCell, myCell) || dontTest ){
+		moveToward(enemy, movePoint);
+		if (!shootAt(enemy, canLethal)) {
 			if(!burnIt(enemy)) {
 				healer(myCell);
 			}
+			moveAwayFrom(enemy);
 		}
-		moveAwayFrom(enemy);
+	} else {
+		moveAwayFrom(enemy, movePoint);
 	}
+} else {
+	if(!shootAt(enemy, canLethal)) {
+		if(!burnIt(enemy)) {
+				healer(myCell);
+		}
+	}
+	moveAwayFrom(enemy);
 }
-
 ```
