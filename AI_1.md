@@ -45,9 +45,8 @@ function getLethal(weapon, effectWeapon, dammageMultiplier) {
 function healer(cellToHeal) {
 	var tp = getTP();
 	if (canUseChipOnCell(CHIP_BANDAGE, cellToHeal)) {
-		while (tp > 1) {
+		if (tp > 1) {
        		useChipOnCell(CHIP_BANDAGE, cellToHeal);
-        	tp = tp-2;
 		}
 		return true;
 	}
@@ -151,6 +150,7 @@ debug(movePoint);
 if (movePoint > 0) {
 	if (testSolution(movePoint, hisCell, myCell) || dontTest ){
 		moveToward(enemy, movePoint);
+		myCell = getCell();
 		if (!shootAt(enemy, canLethal)) {
 			if(!burnIt(enemy)) {
 				healer(myCell);
