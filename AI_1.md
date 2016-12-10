@@ -4,10 +4,10 @@
 //-------------------//
 var weapon = getWeapon();
 if( weapon == null) {
-        setWeapon(WEAPON_PISTOL); // Attention : coûte 1 PT
+        setWeapon(WEAPON_PISTOL);
         weapon = getWeapon();
 }
-  //--------------------//
+  //-------------------//
  //----DECLARATION----//
 //-------------------//
 var enemy = getNearestEnemy();
@@ -46,7 +46,6 @@ function getSafeMove(myCell, hisCell, range, enemyRange, enemyHasSpark, canLetha
 }
 
 function shootAt(enemy,canLethal) {
-	// On essaye de lui tirer dessus !
 	var tp = getTP();
 	if (canUseWeapon(enemy)) {
 		if (canLethal) {
@@ -62,7 +61,6 @@ function shootAt(enemy,canLethal) {
 }
 
 function burnIt(enemy) {
-	// On essaye de lui tirer dessus !
 	var tp = getTP();
 	if (canUseChip(CHIP_SPARK, enemy)) {
 		while (tp > 2) {
@@ -81,7 +79,6 @@ function burnIt(enemy) {
 var usedRange = (inArray(enemyChip, CHIP_SPARK) || canLethal) ? range : spellRange;
 var movePoint = getSafeMove(myCell, hisCell, usedRange, enemyRange, enemyHasSpark, canLethal);
 if (movePoint == 9999) {
-	//we do nothing
 	var thisCell = getCell();
 	moveToward(enemy, 1);
 	shootAt(enemy, canLethal);
