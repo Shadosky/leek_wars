@@ -27,6 +27,15 @@ var effectWeapon = getWeaponEffects(weapon);
 var potentialOutput = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
 var canLethal = (enemyLife < potentialOutput);
 
+function testSolution(movePoint, hisCell, myCell) {
+	var path = getPath(myCell, hisCell);
+	if (lineOfSight(path[movePoint], hisCell)) {
+		return true;
+	} else {
+		// Todo check the other cells of the path
+		return false;
+	}
+}
 function getSafeMove(myCell, hisCell, range, enemyRange, enemyHasSpark, canLethal) {
 	var mp = getTotalMP();
 	var dist =  getCellDistance(myCell , hisCell);
@@ -86,10 +95,12 @@ if (movePoint == 9999) {
 	moveTowardCell(thisCell);
 } else {
 	if (movePoint > 0) {
-		moveToward(enemy, movePoint);
-		if (!shootAt(enemy, canLethal)) {
-			burnIt(enemy);
-			moveAwayFrom(enemy);
+		if (testSolution(movePoint, hisCell, myCell)){
+			moveToward(enemy, movePoint);
+			if (!shootAt(enemy, canLethal)) {
+				burnIt(enemy);
+				moveAwayFrom(enemy);
+			}
 		}
 	} else {
 		if(!shootAt(enemy, canLethal)) {
