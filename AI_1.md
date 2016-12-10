@@ -4,8 +4,8 @@
 //-------------------//
 var weapon = getWeapon();
 if( weapon == null) {
-        setWeapon(WEAPON_PISTOL);
-        weapon = getWeapon();
+	setWeapon(WEAPON_PISTOL);
+	weapon = getWeapon();
 }
   //-------------------//
  //----DECLARATION----//
@@ -26,6 +26,25 @@ var dammageMultiplier = 1+(getStrength()/100);
 var effectWeapon = getWeaponEffects(weapon);
 var potentialOutput = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
 var canLethal = (enemyLife < potentialOutput);
+
+function stayAlive(myCell, potentialOutput) {
+	var hp = getLife();
+	if (hp <= potentialOutput) {
+		useChipOnCell(CHIP_BANDAGE, myCell);
+	}
+	return true;
+}
+
+function findBlindSpot(movePoint, hisCell, myCell) {
+	if (!lineOfSight(myCell, hisCell)) {
+		return 0;
+	}
+	var myX = getCellX(myCell);
+	var myY = getCellY(myCell);
+	for(var i=0; i <= movePoint; i++) {
+		// todo do it
+	}
+}
 
 function testSolution(movePoint, hisCell, myCell) {
 	var path = getPath(myCell, hisCell);
@@ -84,27 +103,40 @@ function burnIt(enemy) {
   //------------------------//
  //---Routine start here---//
 //------------------------//
-
+if(!canLethal){
+	//don't miss a lethal because ur healing urself..
+	// have to learned it the hard way
+	// RIP MyAwesomePoiro 2016-2016
+	stayAlive(myCell, potentialOutput);
+}
 var usedRange = (inArray(enemyChip, CHIP_SPARK) || canLethal) ? range : spellRange;
 var movePoint = getSafeMove(myCell, hisCell, usedRange, enemyRange, enemyHasSpark, canLethal);
 if (movePoint == 9999) {
 	var thisCell = getCell();
+	// Todo find a spot to hide at this moment
 	moveToward(enemy, 1);
-	shootAt(enemy, canLethal);
-	burnIt(enemy);
+	if (!shootAt(enemy, canLethal)) {
+		if(!burnIt(enemy)) {
+			useChipOnCell(CHIP_BANDAGE, myCell);
+		}
+	}
 	moveTowardCell(thisCell);
 } else {
 	if (movePoint > 0) {
 		if (testSolution(movePoint, hisCell, myCell)){
 			moveToward(enemy, movePoint);
 			if (!shootAt(enemy, canLethal)) {
-				burnIt(enemy);
+				if(!burnIt(enemy)) {
+					useChipOnCell(CHIP_BANDAGE, myCell);
+				}
 				moveAwayFrom(enemy);
 			}
 		}
 	} else {
 		if(!shootAt(enemy, canLethal)) {
-			burnIt(enemy);
+			if(!burnIt(enemy)) {
+				useChipOnCell(CHIP_BANDAGE, myCell);
+			}
 		}
 		moveAwayFrom(enemy);
 	}
