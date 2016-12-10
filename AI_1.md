@@ -4,7 +4,7 @@
 //-------------------//
 var weapon = getWeapon();
 if( weapon == null) {
-	setWeapon(WEAPON_PISTOL);
+	setWeapon(WEAPON_DOUBLE_GUN);
 	weapon = getWeapon();
 }
   //-------------------//
@@ -13,9 +13,11 @@ if( weapon == null) {
 var enemy = getNearestEnemy();
 var enemyChip = getChips(enemy);
 var enemyWeapon = getWeapon(enemy);
+var enemyEffectWeapon = getWeaponEffects(enemyWeapon);
 var enemyRange = getWeaponMaxRange(enemyWeapon);
 var enemyHasSpark = (inArray(enemyChip, CHIP_SPARK));
 var enemyLife = getLife(enemy);
+var enemyDammageMultiplier = 1+(getStrength(enemy)/100);
 
 var range = getWeaponMaxRange(weapon);
 var spellRange = getChipMaxRange(CHIP_SPARK);
@@ -24,8 +26,23 @@ var hisCell = getCell(enemy);
 
 var dammageMultiplier = 1+(getStrength()/100);
 var effectWeapon = getWeaponEffects(weapon);
-var potentialOutput = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
+var potentialOutput = getLethal(weapon, effectWeapon, dammageMultiplier);
+var enemyPotentialOutput = getLethal(enemyWeapon, enemyEffectWeapon, enemyDammageMultiplier);
+debug(potentialOutput);
 var canLethal = (enemyLife < potentialOutput);
+
+function getLethal(weapon, effectWeapon, dammageMultiplier) {
+	if (weapon == WEAPON_PISTOL) {
+		return (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
+	}
+	if (weapon == WEAPON_DOUBLE_GUN) {
+		var dmg1 = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*2;
+		debug(dmg1);
+		var dmg2 = (((effectWeapon[1][1]+effectWeapon[1][2])*dammageMultiplier)/2)*2;
+		debug(dmg2);
+		return dmg1 + dmg2;
+	}
+}
 
 function healer(cellToHeal) {
 	var tp = getTP();
@@ -39,9 +56,9 @@ function healer(cellToHeal) {
 	return false;
 }
 
-function stayAlive(myCell, potentialOutput) {
+function stayAlive(myCell, enemyPotentialOutput) {
 	var hp = getLife();
-	if (hp <= potentialOutput) {
+	if (hp <= enemyPotentialOutput) {
 		useChipOnCell(CHIP_BANDAGE, myCell);
 	}
 	return true;
@@ -119,7 +136,7 @@ if(!canLethal){
 	//don't miss a lethal because ur healing urself..
 	// have to learned it the hard way
 	// RIP MyAwesomePoiro 2016-2016
-	stayAlive(myCell, potentialOutput);
+	stayAlive(myCell, enemyPotentialOutput);
 }
 var usedRange = (enemyHasSpark || canLethal) ? range : spellRange;
 var movePoint = getSafeMove(myCell, hisCell, usedRange, enemyRange, enemyHasSpark, canLethal);
@@ -147,4 +164,5 @@ if (movePoint == 9999) {
 		moveAwayFrom(enemy);
 	}
 }
+
 ```
