@@ -1,10 +1,9 @@
-```php
   //-------------------//
  //------- INIT ------//
 //-------------------//
 var weapon = getWeapon();
 if( weapon == null) {
-        setWeapon(WEAPON_PISTOL);
+        setWeapon(WEAPON_PISTOL); // Attention : coûte 1 PT
         weapon = getWeapon();
 }
   //--------------------//
@@ -28,7 +27,6 @@ var potentialOutput = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplie
 var canLethal = (enemyLife < potentialOutput);
 
 function getSafeMove(myCell, hisCell, range, enemyRange, enemyHasSpark, canLethal) {
-	//we assume that we got the same weapon
 	var mp = getTotalMP();
 	var dist =  getCellDistance(myCell , hisCell);
 	var inRange = dist - range;
@@ -102,5 +100,3 @@ if (movePoint == 9999) {
 		moveAwayFrom(enemy);
 	}
 }
-
-```
