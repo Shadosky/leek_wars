@@ -27,6 +27,18 @@ var effectWeapon = getWeaponEffects(weapon);
 var potentialOutput = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
 var canLethal = (enemyLife < potentialOutput);
 
+function healer(cellToHeal) {
+	var tp = getTP();
+	if (canUseChipOnCell(CHIP_BANDAGE, cellToHeal)) {
+		while (tp > 1) {
+       		useChipOnCell(CHIP_BANDAGE, cellToHeal);
+        	tp = tp-2;
+		}
+		return true;
+	}
+	return false;
+}
+
 function stayAlive(myCell, potentialOutput) {
 	var hp = getLife();
 	if (hp <= potentialOutput) {
@@ -109,25 +121,19 @@ if(!canLethal){
 	// RIP MyAwesomePoiro 2016-2016
 	stayAlive(myCell, potentialOutput);
 }
-var usedRange = (inArray(enemyChip, CHIP_SPARK) || canLethal) ? range : spellRange;
+var usedRange = (enemyHasSpark || canLethal) ? range : spellRange;
 var movePoint = getSafeMove(myCell, hisCell, usedRange, enemyRange, enemyHasSpark, canLethal);
 if (movePoint == 9999) {
 	var thisCell = getCell();
 	// Todo find a spot to hide at this moment
-	moveToward(enemy, 1);
-	if (!shootAt(enemy, canLethal)) {
-		if(!burnIt(enemy)) {
-			useChipOnCell(CHIP_BANDAGE, myCell);
-		}
-	}
-	moveTowardCell(thisCell);
+	healer(myCell);
 } else {
 	if (movePoint > 0) {
-		if (testSolution(movePoint, hisCell, myCell)){
+		if (testSolution(movePoint, hisCell, myCell) || !enemyHasSpark){
 			moveToward(enemy, movePoint);
 			if (!shootAt(enemy, canLethal)) {
 				if(!burnIt(enemy)) {
-					useChipOnCell(CHIP_BANDAGE, myCell);
+					healer(myCell);
 				}
 				moveAwayFrom(enemy);
 			}
@@ -135,7 +141,7 @@ if (movePoint == 9999) {
 	} else {
 		if(!shootAt(enemy, canLethal)) {
 			if(!burnIt(enemy)) {
-				useChipOnCell(CHIP_BANDAGE, myCell);
+				healer(myCell);
 			}
 		}
 		moveAwayFrom(enemy);
