@@ -17,29 +17,30 @@ var enemyEffectWeapon = getWeaponEffects(enemyWeapon);
 var enemyRange = getWeaponMaxRange(enemyWeapon);
 var enemyHasSpark = (inArray(enemyChip, CHIP_SPARK));
 var enemyLife = getLife(enemy);
-var enemyDammageMultiplier = 1+(getStrength(enemy)/100);
+var enemyDamageMultiplier = 1+(getStrength(enemy)/100);
 
 var range = getWeaponMaxRange(weapon);
 var spellRange = getChipMaxRange(CHIP_SPARK);
 var myCell = getCell();
 var hisCell = getCell(enemy);
 var dontTest = false;
+var haveUsedHeal = false;
 
 var hp = getLife();
 
-var dammageMultiplier = 1+(getStrength()/100);
+var damageMultiplier = 1+(getStrength()/100);
 var effectWeapon = getWeaponEffects(weapon);
-var potentialOutput = getLethal(weapon, effectWeapon, dammageMultiplier);
-var enemyPotentialOutput = getLethal(enemyWeapon, enemyEffectWeapon, enemyDammageMultiplier);
+var potentialOutput = getLethal(weapon, effectWeapon, damageMultiplier);
+var enemyPotentialOutput = getLethal(enemyWeapon, enemyEffectWeapon, enemyDamageMultiplier);
 var canLethal = (enemyLife < potentialOutput);
 
-function getLethal(weapon, effectWeapon, dammageMultiplier) {
+function getLethal(weapon, effectWeapon, damageMultiplier) {
 	if (weapon == WEAPON_PISTOL) {
-		return (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*3;
+		return (((effectWeapon[0][1]+effectWeapon[0][2])*damageMultiplier)/2)*3;
 	}
 	if (weapon == WEAPON_DOUBLE_GUN) {
-		var dmg1 = (((effectWeapon[0][1]+effectWeapon[0][2])*dammageMultiplier)/2)*2;
-		var dmg2 = (((effectWeapon[1][1]+effectWeapon[1][2])*dammageMultiplier)/2)*2;
+		var dmg1 = (((effectWeapon[0][1]+effectWeapon[0][2])*damageMultiplier)/2)*2;
+		var dmg2 = (((effectWeapon[1][1]+effectWeapon[1][2])*damageMultiplier)/2)*2;
 		return dmg1 + dmg2;
 	}
 }
@@ -71,7 +72,7 @@ function testSolution(movePoint, hisCell, myCell) {
 	if (lineOfSight(path[movePoint], hisCell)) {
 		return movePoint;
 	} else {
-		// Todo check the other cells of the path
+		// check the other cells of the path
 		for (var i = movePoint; i > 0 ; i--) {
 			if (lineOfSight(path[i], hisCell)) {
 				return i;
@@ -106,12 +107,9 @@ function getSafeMove(myCell, hisCell, range, spellRange, enemyRange, enemyHasSpa
 	debugE("ERROR");
 }
 
-function shootAt(enemy,canLethal) {
+function shootAt(enemy) {
 	var tp = getTP();
 	if (canUseWeapon(enemy)) {
-		if (canLethal) {
-			say("I kill you !");
-		}
 		while (tp > 2) {
        		useWeapon(enemy);
         	tp = tp-3;
@@ -136,22 +134,24 @@ function burnIt(enemy) {
   //------------------------//
  //---Routine start here---//
 //------------------------//
-debug(canLethal);
 if(hp <= enemyPotentialOutput && (!canLethal || weapon == WEAPON_DOUBLE_GUN)){
 	//don't miss a lethal because ur healing urself..
 	// have to learned it the hard way
 	// RIP MyAwesomePoiro 2016-2016
-	healer(myCell);
+	haveUsedHeal = healer(myCell);
 }
 
 var movePoint = getSafeMove(myCell, hisCell, range, spellRange, enemyRange, enemyHasSpark, canLethal, dontTest);
-debug(movePoint);
 if (movePoint > 0) {
 	var testedMp = testSolution(movePoint, hisCell, myCell);
 	if (testedMp != 0 || dontTest ){
+		if (canLethal && !haveUsedHeal) {
+			// taunt
+			say("I kill you !");
+		}
 		moveToward(enemy, movePoint);
 		myCell = getCell();
-		if (!shootAt(enemy, canLethal)) {
+		if (!shootAt(enemy)) {
 			burnIt(enemy);
 		}
 		healer(myCell);
@@ -162,7 +162,7 @@ if (movePoint > 0) {
 		moveAwayFrom(enemy, movePoint);
 	}
 } else {
-	if(!shootAt(enemy, canLethal)) {
+	if(!shootAt(enemy)) {
 		burnIt(enemy);
 	}
 	healer(myCell);
